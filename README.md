@@ -40,3 +40,5 @@ This project helped me learn **Python programming, working with datasets, machin
 - Web development with **Flask**  
 - End-to-end project workflow from **data preprocessing → model → web app**  
 - Deployment readiness for platforms like **Render**
+
+note: i was not able to upload similarity.pkl as it was exceeding the sie limit
