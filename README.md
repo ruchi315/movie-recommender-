@@ -1,6 +1,4 @@
-# Movie Recommendation System
 
-A beginner-friendly Python movie recommendation system built with Flask.
 # Movie Recommendation System
 
    
