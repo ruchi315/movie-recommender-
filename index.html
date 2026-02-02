@@ -7,37 +7,19 @@
             font-family: Arial, sans-serif;
             padding: 30px;
             background-color: #f5f5f5;
-        }
-        h2, h3 {
             text-align: center;
-        }
-        form {
-            text-align: center;
-            margin-bottom: 30px;
         }
         select, button {
             padding: 10px;
             font-size: 16px;
             margin: 10px;
         }
-        .recommendations {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
+        ul {
+            list-style: none;
+            padding: 0;
         }
-        .movie {
-            text-align: center;
-            width: 150px;
-        }
-        .movie img {
-            width: 150px;
-            height: auto;
-            border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .movie p {
-            margin-top: 5px;
+        li {
+            padding: 8px;
             font-weight: bold;
         }
     </style>
@@ -57,14 +39,11 @@
 
 {% if recommendations %}
 <h3>Recommended Movies</h3>
-<div class="recommendations">
+<ul>
     {% for m in recommendations %}
-    <div class="movie">
-        <img src="{{ m.poster }}" alt="{{ m.title }}">
-        <p>{{ m.title }}</p>
-    </div>
+    <li>{{ m }}</li>
     {% endfor %}
-</div>
+</ul>
 {% endif %}
 
 </body>
