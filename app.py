@@ -1,24 +1,26 @@
 from flask import Flask, render_template, request
 import pickle
+import pandas as pd
 import os
-import requests
+import gdown  # Handles large Google Drive downloads
 
 app = Flask(__name__)
 
+# Base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Paths for local files
 movies_path = os.path.join(BASE_DIR, "movies.pkl")
 similarity_path = os.path.join(BASE_DIR, "similarity.pkl")
 
-# Google Drive direct download URL
-SIMILARITY_URL = "https://drive.google.com/uc?export=download&id=14qwXpydzboCnzRG_jLtlW2xjLQP87eYS"
+# Google Drive download URL (large file)
+SIMILARITY_URL = "https://drive.google.com/uc?id=14qwXpydzboCnzRG_jLtlW2xjLQP87eYS"
 
 # Download similarity.pkl if not present
 if not os.path.exists(similarity_path):
     print("Downloading similarity.pkl from Google Drive...")
-    r = requests.get(SIMILARITY_URL)
-    with open(similarity_path, "wb") as f:
-        f.write(r.content)
+    gdown.download(SIMILARITY_URL, similarity_path, quiet=False)
+    print("Download complete!")
 
 # Load data
 movies = pickle.load(open(movies_path, "rb"))
@@ -37,13 +39,14 @@ def recommend(movie):
 
     return [movies.iloc[i[0]].title for i in movie_list]
 
-# Routes
+# Home route
 @app.route("/", methods=["GET", "POST"])
 def home():
     recommendations = []
     if request.method == "POST":
         movie = request.form.get("movie")
-        recommendations = recommend(movie)
+        if movie:
+            recommendations = recommend(movie)
 
     return render_template(
         "index.html",
@@ -51,5 +54,6 @@ def home():
         recommendations=recommendations
     )
 
+# Run app locally
 if __name__ == "__main__":
     app.run(debug=True)
