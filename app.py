@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 import os
 import gdown  # Handles large Google Drive downloads
+import requests  # For TMDb API
 
 app = Flask(__name__)
 
@@ -26,7 +27,22 @@ if not os.path.exists(similarity_path):
 movies = pickle.load(open(movies_path, "rb"))
 similarity = pickle.load(open(similarity_path, "rb"))
 
-# Recommendation function
+# TMDb API key
+TMDB_API_KEY = "bb534df606f2cd2be7ff131da8b14a93"
+
+# Function to fetch poster URL from TMDb
+def get_poster_url(movie_name):
+    url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
+    try:
+        data = requests.get(url).json()
+        results = data.get("results")
+        if results and results[0].get("poster_path"):
+            return "https://image.tmdb.org/t/p/w500" + results[0]["poster_path"]
+    except:
+        pass
+    return ""  # fallback if poster not found
+
+# Recommendation function (with posters)
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
@@ -37,7 +53,13 @@ def recommend(movie):
         key=lambda x: x[1]
     )[1:6]
 
-    return [movies.iloc[i[0]].title for i in movie_list]
+    recommendations = []
+    for i in movie_list:
+        title = movies.iloc[i[0]].title
+        poster = get_poster_url(title)
+        recommendations.append({"title": title, "poster": poster})
+
+    return recommendations
 
 # Home route
 @app.route("/", methods=["GET", "POST"])
