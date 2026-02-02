@@ -1,12 +1,30 @@
-
 from flask import Flask, render_template, request
 import pickle
+import os
+import requests
 
 app = Flask(__name__)
 
-movies = pickle.load(open("movies.pkl", "rb"))
-similarity = pickle.load(open("similarity.pkl", "rb"))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+movies_path = os.path.join(BASE_DIR, "movies.pkl")
+similarity_path = os.path.join(BASE_DIR, "similarity.pkl")
+
+# Google Drive direct download URL
+SIMILARITY_URL = "https://drive.google.com/uc?export=download&id=14qwXpydzboCnzRG_jLtlW2xjLQP87eYS"
+
+# Download similarity.pkl if not present
+if not os.path.exists(similarity_path):
+    print("Downloading similarity.pkl from Google Drive...")
+    r = requests.get(SIMILARITY_URL)
+    with open(similarity_path, "wb") as f:
+        f.write(r.content)
+
+# Load data
+movies = pickle.load(open(movies_path, "rb"))
+similarity = pickle.load(open(similarity_path, "rb"))
+
+# Recommendation function
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
@@ -19,11 +37,12 @@ def recommend(movie):
 
     return [movies.iloc[i[0]].title for i in movie_list]
 
+# Routes
 @app.route("/", methods=["GET", "POST"])
 def home():
     recommendations = []
     if request.method == "POST":
-        movie = request.form["movie"]
+        movie = request.form.get("movie")
         recommendations = recommend(movie)
 
     return render_template(
