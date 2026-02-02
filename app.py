@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request
 import pickle
-import pandas as pd
 import os
 import gdown  # Handles large Google Drive downloads
-import requests  # For TMDb API
 
 app = Flask(__name__)
 
@@ -19,29 +17,15 @@ SIMILARITY_URL = "https://drive.google.com/uc?id=14qwXpydzboCnzRG_jLtlW2xjLQP87e
 
 # Download similarity.pkl if not present
 if not os.path.exists(similarity_path):
+    print("Downloading similarity.pkl from Google Drive...")
     gdown.download(SIMILARITY_URL, similarity_path, quiet=False)
+    print("Download complete!")
 
 # Load data
 movies = pickle.load(open(movies_path, "rb"))
 similarity = pickle.load(open(similarity_path, "rb"))
 
-# TMDb API key
-TMDB_API_KEY = "bb534df606f2cd2be7ff131da8b14a93"
-
-# Function to fetch poster URL from TMDb
-def get_poster_url(movie_name):
-    url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
-    try:
-        response = requests.get(url, timeout=5)
-        data = response.json()
-        results = data.get("results")
-        if results and results[0].get("poster_path"):
-            return "https://image.tmdb.org/t/p/w500" + results[0]["poster_path"]
-    except Exception:
-        pass
-    return ""  # fallback if poster not found
-
-# Recommendation function
+# Recommendation function (titles only)
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
@@ -52,31 +36,23 @@ def recommend(movie):
         key=lambda x: x[1]
     )[1:6]
 
-    recommendations = []
-    for i in movie_list:
-        title = movies.iloc[i[0]].title
-        poster = get_poster_url(title)
-        recommendations.append({"title": title, "poster": poster})
-
-    return recommendations
+    # Return only titles
+    return [movies.iloc[i[0]].title for i in movie_list]
 
 # Home route
 @app.route("/", methods=["GET", "POST"])
 def home():
     recommendations = []
-    selected_movie = None
     if request.method == "POST":
-        selected_movie = request.form.get("movie")
-        if selected_movie:
-            recommendations = recommend(selected_movie)
+        movie = request.form.get("movie")
+        if movie:
+            recommendations = recommend(movie)
 
     return render_template(
         "index.html",
         movies=movies['title'].values,
-        recommendations=recommendations,
-        selected_movie=selected_movie
+        recommendations=recommendations
     )
 
-# Run app locally
 if __name__ == "__main__":
     app.run(debug=True)
