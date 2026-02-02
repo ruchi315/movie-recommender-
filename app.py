@@ -1,6 +1,4 @@
-import streamlit as st
 
-st.title('Movie Recommender System')
 from flask import Flask, render_template, request
 import pickle
 
