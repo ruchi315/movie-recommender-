@@ -19,9 +19,7 @@ SIMILARITY_URL = "https://drive.google.com/uc?id=14qwXpydzboCnzRG_jLtlW2xjLQP87e
 
 # Download similarity.pkl if not present
 if not os.path.exists(similarity_path):
-    print("Downloading similarity.pkl from Google Drive...")
     gdown.download(SIMILARITY_URL, similarity_path, quiet=False)
-    print("Download complete!")
 
 # Load data
 movies = pickle.load(open(movies_path, "rb"))
@@ -34,15 +32,16 @@ TMDB_API_KEY = "bb534df606f2cd2be7ff131da8b14a93"
 def get_poster_url(movie_name):
     url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}"
     try:
-        data = requests.get(url).json()
+        response = requests.get(url, timeout=5)
+        data = response.json()
         results = data.get("results")
         if results and results[0].get("poster_path"):
             return "https://image.tmdb.org/t/p/w500" + results[0]["poster_path"]
-    except:
+    except Exception:
         pass
     return ""  # fallback if poster not found
 
-# Recommendation function (with posters)
+# Recommendation function
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
@@ -65,15 +64,17 @@ def recommend(movie):
 @app.route("/", methods=["GET", "POST"])
 def home():
     recommendations = []
+    selected_movie = None
     if request.method == "POST":
-        movie = request.form.get("movie")
-        if movie:
-            recommendations = recommend(movie)
+        selected_movie = request.form.get("movie")
+        if selected_movie:
+            recommendations = recommend(selected_movie)
 
     return render_template(
         "index.html",
         movies=movies['title'].values,
-        recommendations=recommendations
+        recommendations=recommendations,
+        selected_movie=selected_movie
     )
 
 # Run app locally
