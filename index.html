@@ -2,6 +2,45 @@
 <html>
 <head>
     <title>Movie Recommendation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f5f5f5;
+        }
+        h2, h3 {
+            text-align: center;
+        }
+        form {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .recommendations {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .movie {
+            text-align: center;
+            width: 150px;
+        }
+        .movie img {
+            width: 150px;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .movie p {
+            margin-top: 5px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
@@ -13,17 +52,19 @@
         <option value="{{ movie }}">{{ movie }}</option>
         {% endfor %}
     </select>
-
     <button type="submit">Recommend</button>
 </form>
 
 {% if recommendations %}
 <h3>Recommended Movies</h3>
-<ul>
+<div class="recommendations">
     {% for m in recommendations %}
-    <li>{{ m }}</li>
+    <div class="movie">
+        <img src="{{ m.poster }}" alt="{{ m.title }}">
+        <p>{{ m.title }}</p>
+    </div>
     {% endfor %}
-</ul>
+</div>
 {% endif %}
 
 </body>
